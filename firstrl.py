@@ -8,9 +8,15 @@ import tcod
 
 # Window Settings
 FULLSCREEN = False  # Fullscreen Control
+LIMIT_FPS = 20      # 20 FPS MAX
 SCREEN_WIDTH = 80   # Characters Wide
 SCREEN_HEIGHT = 50  # Characters Tall
-LIMIT_FPS = 20      # 20 FPS MAX
+
+# Map Settings
+MAP_WIDTH = 80
+MAP_HEIGHT = 50
+color_dark_wall = tcod.Color(0,0,100)
+color_dark_ground = tcod.Color(50,50,150)
 
 # Game Control Method
 TURN_BASED = True  # Turn-Based Boolean
@@ -51,7 +57,41 @@ def handle_keys():
     #--------------------------------------------------
 
 # ----------------------------------------------------------------------
-# OBJECT CLASS
+# MAP HANDLING
+# ----------------------------------------------------------------------
+
+class Tile:
+    def __init__(self, blocked, block_sight = None):
+        self.blocked = blocked
+        block_sight = blocked if block_sight is None else None
+        self.block_sight = block_sight
+
+class Rect:
+    def __init__(self, x, y, w, h):
+        self.x1 = x
+        self.y1 = y
+        self.x2 = x + w
+        self.y2 = y + h
+
+def make_map():
+    global map
+    map = [[Tile(False) for y in range(MAP_HEIGHT)] for x in range(MAP_WIDTH)] 
+
+    # TEST BLOCKS
+    # map[30][22].blocked = True
+    # map[30][22].block_sight = True
+    # map[50][22].blocked = True
+    # map[50][22].block_sight = True
+
+def create_room(room):
+    global map
+    for x in range(room.x1 + 1, room.x2):
+        for y in range(room.y1 + 1, room.y2):
+            map[x][y].blocked = False
+            map[x][y].block_sight = False
+
+# ----------------------------------------------------------------------
+# OBJECT HANDLING
 # ----------------------------------------------------------------------
 
 # Generic Object Class Representing Any Screen Item
@@ -63,8 +103,9 @@ class Object:
         self.color = color  # Color
 
     def move(self, dx, dy): # Move Object By Given Amount
-        self.x += dx
-        self.y += dy
+        if not map[self.x + dx][self.y + dy].blocked:
+            self.x += dx
+            self.y += dy
 
     def draw(self):         # Draw Character
         tcod.console_set_default_foreground(con, self.color)
@@ -73,6 +114,26 @@ class Object:
     def clear(self):        # Erase Character
         tcod.console_put_char(con, self.x, self.y, ' ', tcod.BKGND_NONE)
 
+# ----------------------------------------------------------------------
+# RENDERING
+# ----------------------------------------------------------------------
+
+def render_all():
+    global color_light_wall
+    global color_light_ground
+
+    for y in range(MAP_HEIGHT):
+        for x in range(MAP_WIDTH):
+            wall = map[x][y].block_sight
+            if wall:
+                tcod.console_set_char_background(con, x, y, color_dark_wall, tcod.BKGND_SET)
+            else:
+                tcod.console_set_char_background(con, x, y, color_dark_ground, tcod.BKGND_SET)
+
+    for object in objects:
+        object.draw()
+
+    tcod.console_blit(con, 0, 0 , SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
 # ----------------------------------------------------------------------
 # INITIALIZATION
 # ----------------------------------------------------------------------
@@ -86,6 +147,8 @@ con = tcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 player = Object(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, '@', tcod.white)
 npc = Object(SCREEN_WIDTH // 2 - 5, SCREEN_HEIGHT // 2, '@', tcod.yellow)
 objects = [npc, player]
+
+make_map()
 
 # def initialize_game():
     # Initialize Player
@@ -107,11 +170,9 @@ objects = [npc, player]
 # ----------------------------------------------------------------------
 
 while not tcod.console_is_window_closed():
-    # Draw Objects in List
-    for object in objects:
-        object.draw()
+    # Render Screen
+    render_all()
 
-    tcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
     tcod.console_flush()
 
     # Erase Before Move
