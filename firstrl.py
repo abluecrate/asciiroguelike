@@ -9,12 +9,12 @@ import tcod
 # Window Settings
 FULLSCREEN = False  # Fullscreen Control
 LIMIT_FPS = 20      # 20 FPS MAX
-SCREEN_WIDTH = 80   # Characters Wide
-SCREEN_HEIGHT = 50  # Characters Tall
+SCREEN_WIDTH = 60   # Characters Wide
+SCREEN_HEIGHT = 40  # Characters Tall
 
 # Map Settings
-MAP_WIDTH = 80
-MAP_HEIGHT = 50
+MAP_WIDTH = 60
+MAP_HEIGHT = 35
 color_dark_wall = tcod.Color(0,0,100)
 color_dark_ground = tcod.Color(50,50,150)
 
