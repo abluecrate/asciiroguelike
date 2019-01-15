@@ -15,12 +15,19 @@ SCREEN_HEIGHT = 40  # Characters Tall
 # Map Settings
 MAP_WIDTH = 60      # Characters Wide
 MAP_HEIGHT = 35     # Characters Tall
-color_dark_wall = tcod.Color(0,0,100)       # Wall Color
-color_dark_ground = tcod.Color(50,50,150)   # Ground Color
 
 ROOM_MAX_SIZE = 15  # Max Room Dimension
 ROOM_MIN_SIZE = 5   # Min Room Dimension
 MAX_ROOMS = 20      # Max Number of Dungeon Rooms
+
+# FOV ALGORITHM
+FOV_ALGO = 0
+FOV_LIGHT_WALLS = True
+TORCH_RADIUS = 10
+color_dark_wall = tcod.Color(0,0,100)       # Wall Color
+color_light_wall = tcod.Color(130,110,50)   # Lit Wall Color
+color_dark_ground = tcod.Color(50,50,150)   # Ground Color
+color_light_ground = tcod.Color(200,180,50) # Lit Ground Color
 
 # Game Control Method
 TURN_BASED = True  # Turn-Based Boolean
@@ -41,7 +48,8 @@ def get_key_event(turn_based = None):               # Gather Keyboard Input
     return key
 
 def handle_keys():
-    global player_x, player_y           # Player Position
+    # global player.x, player.y           # Player Position
+    global FOV_recompute
     key = get_key_event(TURN_BASED)     # Gather Keyboard Input
     if key.vk == tcod.KEY_ENTER and key.lalt:                           # Key Check For Fullscreen / Exiting
         tcod.console_set_fullscreen(not tcod.console_is_fullscreen())   # Alt + Enter : Toggle Fullscreen
@@ -51,12 +59,16 @@ def handle_keys():
     # Movement Keys
     if tcod.console_is_key_pressed(tcod.KEY_UP):        # Up Arrow
         player.move(0, -1)
+        FOV_recompute = True
     elif tcod.console_is_key_pressed(tcod.KEY_DOWN):    # Down Arrow
         player.move(0, 1)
+        FOV_recompute = True
     elif tcod.console_is_key_pressed(tcod.KEY_LEFT):    # Left Arrow
         player.move(-1, 0)
+        FOV_recompute = True
     elif tcod.console_is_key_pressed(tcod.KEY_RIGHT):   # Right Arrow
         player.move(1, 0)
+        FOV_recompute = True
     #--------------------------------------------------
 
 # ----------------------------------------------------------------------
@@ -177,8 +189,9 @@ class Object:
             self.y += dy    # Move Amount --> Y-Direction
 
     def draw(self):         # Draw Character
-        tcod.console_set_default_foreground(con, self.color)
-        tcod.console_put_char(con, self.x, self.y, self.char, tcod.BKGND_NONE)
+        if tcod.map_is_in_fov(FOV_map, self.x, self.y):
+            tcod.console_set_default_foreground(con, self.color)
+            tcod.console_put_char(con, self.x, self.y, self.char, tcod.BKGND_NONE)
 
     def clear(self):        # Erase Character
         tcod.console_put_char(con, self.x, self.y, ' ', tcod.BKGND_NONE)
@@ -188,17 +201,29 @@ class Object:
 # ----------------------------------------------------------------------
 
 def render_all():
-    global color_light_wall
-    global color_light_ground
+    global color_light_wall, color_dark_wall
+    global color_light_ground, color_dark_ground
+    global FOV_map, FOV_recompute
+
+    if FOV_recompute:
+        FOV_recompute = False
+        tcod.map_compute_fov(FOV_map, player.x, player.y, TORCH_RADIUS, FOV_LIGHT_WALLS, FOV_ALGO)
 
     # Iterate Room Tiles and Set Color
     for y in range(MAP_HEIGHT):
         for x in range(MAP_WIDTH):
+            visible = tcod.map_is_in_fov(FOV_map, x, y)
             wall = map[x][y].block_sight
-            if wall:
-                tcod.console_set_char_background(con, x, y, color_dark_wall, tcod.BKGND_SET)
+            if not visible:
+                if wall:
+                    tcod.console_set_char_background(con, x, y, color_dark_wall, tcod.BKGND_SET)
+                else:
+                    tcod.console_set_char_background(con, x, y, color_dark_ground, tcod.BKGND_SET)
             else:
-                tcod.console_set_char_background(con, x, y, color_dark_ground, tcod.BKGND_SET)
+                if wall:
+                    tcod.console_set_char_background(con, x, y, color_light_wall, tcod.BKGND_SET)
+                else:
+                    tcod.console_set_char_background(con, x, y, color_light_ground, tcod.BKGND_SET)
 
     for object in objects:  # Object List
         object.draw()       # Draw All Objects
@@ -219,8 +244,12 @@ player = Object(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, '@', tcod.white)
 npc = Object(SCREEN_WIDTH // 2 - 5, SCREEN_HEIGHT // 2, '@', tcod.yellow)
 objects = [npc, player]
 
-make_map()  # Generate Map --> Don't Draw Yet
-
+make_map()                                      # Generate Map --> Don't Draw Yet
+FOV_map = tcod.map_new(MAP_WIDTH, MAP_HEIGHT)   # Genrate FOV Map
+for y in range(MAP_HEIGHT):
+    for x in range(MAP_WIDTH):
+        tcod.map_set_properties(FOV_map, x, y, not map[x][y].block_sight, not map[x][y].blocked)
+FOV_recompute = True
 # ----------------------------------------------------------------------
 # MAIN GAME LOOP
 # ----------------------------------------------------------------------
