@@ -23,7 +23,7 @@ MAX_ROOMS = 20      # Max Number of Dungeon Rooms
 # FOV ALGORITHM
 FOV_ALGO = 0
 FOV_LIGHT_WALLS = True
-TORCH_RADIUS = 10
+TORCH_RADIUS = 15
 color_dark_wall = tcod.Color(0,0,100)       # Wall Color
 color_light_wall = tcod.Color(130,110,50)   # Lit Wall Color
 color_dark_ground = tcod.Color(50,50,150)   # Ground Color
@@ -41,9 +41,9 @@ FONT_FILE = 'arial10x10.png'    # Font File
 # ----------------------------------------------------------------------
 
 def get_key_event(turn_based = None):               # Gather Keyboard Input
-    if turn_based: 
+    if turn_based:
         key = tcod.console_wait_for_keypress(True)  # Turn-Based: Wait For Input
-    else: 
+    else:
         key = tcod.console_check_for_keypress()     # Real-Time: Don't Wait
     return key
 
@@ -78,6 +78,7 @@ def handle_keys():
 class Tile:
     # Tile Instance
     def __init__(self, blocked, block_sight = None):
+        self.explored = False
         self.blocked = blocked          # Block Boolean
         if block_sight is None:         # Default Tile
             block_sight = blocked       # |--> Blocks Sight
@@ -143,7 +144,7 @@ def make_map():
         new_room = Rect(x, y, w, h) # Create New Room
 
         failed = False
-        for other_room in rooms:                # Iterate Over "Other" Rooms 
+        for other_room in rooms:                # Iterate Over "Other" Rooms
             if new_room.intersect(other_room):  # Check Intersection
                 failed = True                   # Fail If Intersected
                 break
@@ -164,7 +165,7 @@ def make_map():
                     create_h_tunnel(prev_x, new_x, prev_y)  # Horizontal
                     create_v_tunnel(prev_y, new_y, new_x)   # Vertical
                 else:
-                    create_v_tunnel(prev_y, new_y, prev_x)  # Vertical 
+                    create_v_tunnel(prev_y, new_y, prev_x)  # Vertical
                     create_h_tunnel(prev_x, new_x, new_y)   # Horizontal
 
             rooms.append(new_room)  # Append New Room To List
@@ -215,15 +216,17 @@ def render_all():
             visible = tcod.map_is_in_fov(FOV_map, x, y)
             wall = map[x][y].block_sight
             if not visible:
-                if wall:
-                    tcod.console_set_char_background(con, x, y, color_dark_wall, tcod.BKGND_SET)
-                else:
-                    tcod.console_set_char_background(con, x, y, color_dark_ground, tcod.BKGND_SET)
+                if map[x][y].explored:
+                    if wall:
+                        tcod.console_set_char_background(con, x, y, color_dark_wall, tcod.BKGND_SET)
+                    else:
+                        tcod.console_set_char_background(con, x, y, color_dark_ground, tcod.BKGND_SET)
             else:
                 if wall:
                     tcod.console_set_char_background(con, x, y, color_light_wall, tcod.BKGND_SET)
                 else:
                     tcod.console_set_char_background(con, x, y, color_light_ground, tcod.BKGND_SET)
+                map[x][y].explored = True
 
     for object in objects:  # Object List
         object.draw()       # Draw All Objects
