@@ -9,6 +9,7 @@ TITLE = 'maptest'
 FONT_FILE = 'arial10x10.png' 
 
 colors = [[17,51,17],[20,48,20],[14,50,13],[18,49,18],[16,48,19],[19,52,15]]
+character = ['A','B','C','D','E','F']
 
 def get_key_event():                        # Gather Keyboard Input
     key = tcod.console_wait_for_keypress(True)    # Wait For Input
@@ -22,7 +23,7 @@ def handle_keys():
         return True
 
 def make_map():
-    global map
+    # global map
     for y in range(SCREEN_HEIGHT):
         for x in range(SCREEN_WIDTH):
             r = tcod.random_get_int(0, 0, len(colors)-1)
