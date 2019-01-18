@@ -1,6 +1,7 @@
 # http://www.roguebasin.com/index.php?title=Complete_Roguelike_Tutorial,_using_python3%2Blibtcod
 
 import tcod
+import colors
 
 # ----------------------------------------------------------------------
 # GLOBAL GAME SETTINGS
@@ -20,7 +21,9 @@ ROOM_MAX_SIZE = 15  # Max Room Dimension
 ROOM_MIN_SIZE = 5   # Min Room Dimension
 MAX_ROOMS = 20      # Max Number of Dungeon Rooms
 
-# FOV ALGORITHM
+MAX_ROOM_MONSTERS = 3
+
+# FOV Algorithm
 FOV_ALGO = 0
 FOV_LIGHT_WALLS = True
 TORCH_RADIUS = 15
@@ -171,6 +174,10 @@ def make_map():
             rooms.append(new_room)  # Append New Room To List
             num_rooms += 1          # Total Number of Rooms Increase
     # ----------------------------------------------------------------------
+
+def place_objects(room):
+    num_monsters = randint(0, MAX_ROOM_MONSTERS)
+
 
 # ----------------------------------------------------------------------
 # OBJECT HANDLING
