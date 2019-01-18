@@ -3,16 +3,23 @@ print(__name__)
 import tcod
 from config import Config
 from inputHandler import handleKeys
+from renderFunctions import renderAll, clearAll
+
+from mapObjects.gameMap import gameMap
+
+from entity import Entity
 
 def main():
 
-    playerX = int(Config.SCREEN_WIDTH // 2)
-    playerY = int(Config.SCREEN_HEIGHT // 2)
+    player = Entity(int(Config.SCREEN_WIDTH // 2), int(Config.SCREEN_HEIGHT // 2), '@', tcod.white)
+    entities = [player]
 
     tcod.console_set_custom_font(Config.FONT, tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
     tcod.console_init_root(Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT, Config.TITLE, False)
     
     con = tcod.console_new(Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT)
+
+    map = gameMap(Config.MAP_WIDTH, Config.MAP_HEIGHT)
 
     key = tcod.Key()
     mouse = tcod.Mouse()
@@ -21,11 +28,11 @@ def main():
 
         tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS, key, mouse)
 
-        tcod.console_set_default_foreground(con, tcod.white)
-        tcod.console_put_char(con, playerX, playerY, '@', tcod.BKGND_NONE)
-        tcod.console_blit(con, 0, 0, Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT, 0, 0, 0)
+        renderAll(con, entities, map, Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT)
+
         tcod.console_flush()
-        tcod.console_put_char(con, playerX, playerY, ' ', tcod.BKGND_NONE)
+
+        clearAll(con, entities)
 
         action = handleKeys(key)
 
@@ -35,8 +42,8 @@ def main():
 
         if move:
             (dx,dy) = move
-            playerX += dx
-            playerY += dy
+            if not map.isBlocked(player.x + dx, player.y + dy):
+                player.move(dx,dy)
 
         if EXIT:
             return True
