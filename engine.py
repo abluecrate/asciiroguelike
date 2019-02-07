@@ -4,6 +4,7 @@ import tcod
 from config import Config
 from inputHandler import handleKeys
 from renderFunctions import renderAll, clearAll
+from fovFunctions import initializeFOV, recomputeFOV
 
 from mapObjects.gameMap import gameMap
 
@@ -20,6 +21,10 @@ def main():
     con = tcod.console_new(Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT)
 
     map = gameMap(Config.MAP_WIDTH, Config.MAP_HEIGHT)
+    map.makeMap(Config.MAX_ROOMS, Config.ROOM_MIN_SIZE, Config.ROOM_MAX_SIZE, Config.MAP_WIDTH, Config.MAP_HEIGHT, player)
+
+    fovRecompute = True
+    fovMap = initializeFOV(map)
 
     key = tcod.Key()
     mouse = tcod.Mouse()
@@ -28,7 +33,12 @@ def main():
 
         tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS, key, mouse)
 
-        renderAll(con, entities, map, Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT)
+        if fovRecompute:
+            recomputeFOV(fovMap, player.x, player.y, Config.FOV_RADIUS, Config.FOV_LIGHT_WALLS, Config.FOV_ALGORITHM)
+
+        renderAll(con, entities, map, fovMap, fovRecompute, Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT)
+
+        fovRecompute = False
 
         tcod.console_flush()
 
@@ -44,6 +54,7 @@ def main():
             (dx,dy) = move
             if not map.isBlocked(player.x + dx, player.y + dy):
                 player.move(dx,dy)
+                fovRecompute = True
 
         if EXIT:
             return True

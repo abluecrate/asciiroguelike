@@ -4,3 +4,5 @@ class Tile:
         if blockSight is None:
             blockSight = blocked
         self.blockSight = blockSight
+
+        self.explored = False

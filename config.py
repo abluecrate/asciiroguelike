@@ -12,9 +12,15 @@ class Config(object):
 
     COLORS = {
               'darkWall' : tcod.Color(0,0,100),
-              'darkGround' : tcod.Color(50,50,150)
+              'darkGround' : tcod.Color(50,50,150),
+              'lightWall' : tcod.Color(130,110,50),
+              'lightGround' : tcod.Color(200,180,50)
              }
     
-
+    ROOM_MAX_SIZE = 10
+    ROOM_MIN_SIZE = 6
+    MAX_ROOMS = 25
     
-
+    FOV_ALGORITHM = 0
+    FOV_LIGHT_WALLS = True
+    FOV_RADIUS = 10
