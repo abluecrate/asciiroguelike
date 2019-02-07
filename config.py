@@ -21,6 +21,8 @@ class Config(object):
     ROOM_MIN_SIZE = 6
     MAX_ROOMS = 25
     
-    FOV_ALGORITHM = 1
+    FOV_ALGORITHM = 0
     FOV_LIGHT_WALLS = True
     FOV_RADIUS = 15
+
+    MAX_MONSTERS_PER_ROOM = 2

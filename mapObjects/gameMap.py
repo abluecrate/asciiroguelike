@@ -1,7 +1,8 @@
+import tcod
 from random import randint
-
 from mapObjects.tile import Tile
 from mapObjects.rectangle import Rect
+from entity import Entity
 
 class gameMap:
     def __init__(self, width, height):
@@ -34,7 +35,23 @@ class gameMap:
             self.tiles[x][y].blocked = False
             self.tiles[x][y].blockSight = False
 
-    def makeMap(self, maxRooms, roomMinSize, roomMaxSize, mapWidth, mapHeight, player):
+    def placeEntities(self, room, entities, maxMonstersPerRoom):
+        nMonsters = randint(0, maxMonstersPerRoom)
+        
+        for _ in range(nMonsters):
+            x = randint(room.x1 + 1, room.x2 - 1)
+            y = randint(room.y1 + 1, room.y2 - 1)
+
+            if not any([entity for entity in entities if entity.x == x and entity.y == y]):
+                if randint(0,100) < 80:
+                    monster = Entity(x, y, 'O', tcod.Color(75,115,85))
+                else:
+                    monster = Entity(x, y, 'T', tcod.Color(10,70,30))
+                entities.append(monster)
+
+    def makeMap(self, maxRooms, roomMinSize, roomMaxSize, mapWidth, mapHeight, player, 
+                entities, maxMonstersPerRoom):
+
         rooms = []
         nRooms = 0
 
@@ -67,6 +84,8 @@ class gameMap:
                     else:
                         self.createVTunnel(prevY,newY,prevX)
                         self.createHTunnel(prevX,newX,newY)
+
+            self.placeEntities(newRoom, entities, maxMonstersPerRoom)
 
             rooms.append(newRoom)
             nRooms += 1

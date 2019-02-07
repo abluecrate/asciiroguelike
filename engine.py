@@ -12,7 +12,7 @@ from entity import Entity
 
 def main():
 
-    player = Entity(int(Config.SCREEN_WIDTH // 2), int(Config.SCREEN_HEIGHT // 2), '@', tcod.white)
+    player = Entity(0, 0, '@', tcod.white)
     entities = [player]
 
     tcod.console_set_custom_font(Config.FONT, tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
@@ -21,8 +21,8 @@ def main():
     con = tcod.console_new(Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT)
 
     map = gameMap(Config.MAP_WIDTH, Config.MAP_HEIGHT)
-    map.makeMap(Config.MAX_ROOMS, Config.ROOM_MIN_SIZE, Config.ROOM_MAX_SIZE, Config.MAP_WIDTH, Config.MAP_HEIGHT, player)
-
+    map.makeMap(Config.MAX_ROOMS, Config.ROOM_MIN_SIZE, Config.ROOM_MAX_SIZE, Config.MAP_WIDTH, Config.MAP_HEIGHT, 
+                player, entities, Config.MAX_MONSTERS_PER_ROOM)
     fovRecompute = True
     fovMap = initializeFOV(map)
 
