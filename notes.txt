@@ -1,0 +1,6 @@
+http://rogueliketutorials.com/libtcod/6
+
+http://programarcadegames.com/index.php?lang=en
+
+https://en.wikipedia.org/wiki/A*_search_algorithm
+https://www.redblobgames.com/pathfinding/a-star/introduction.html

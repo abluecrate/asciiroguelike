@@ -1,6 +1,8 @@
 import tcod
 import math
 
+from renderFunctions import renderOrder
+
 #######################################################################################
 
 class Entity:
@@ -8,13 +10,15 @@ class Entity:
     #----------------------------------------------------------------------------------
 
     def __init__(self, x, y, char, color, name, 
-                 blocks = False, fighter = None, ai = None):
+                 blocks = False, rOrder = renderOrder.corpse,
+                 fighter = None, ai = None):
         self.x = x
         self.y = y
         self.char = char
         self.color = color
         self.name = name
         self.blocks = blocks
+        self.rOrder = rOrder
         self.fighter = fighter
         self.ai = ai
     

@@ -1,5 +1,6 @@
 import tcod
 from random import randint
+from renderFunctions import renderOrder
 from mapObjects.tile import Tile
 from mapObjects.rectangle import Rect
 from entity import Entity
@@ -11,7 +12,7 @@ from components.ai import basicMonster
 class gameMap:
     
     #----------------------------------------------------------------------------------
-    
+
     def __init__(self, width, height):
         self.width = width
         self.height = height
@@ -66,12 +67,14 @@ class gameMap:
                     fighterComponent = Fighter(hp = 10, defense = 0, power = 3)
                     aiComponent = basicMonster()
                     monster = Entity(x, y, 'O', tcod.Color(75,115,85), 'Orc', 
-                                     blocks = True, fighter = fighterComponent, ai = aiComponent)
+                                     blocks = True, rOrder = renderOrder.actor,
+                                     fighter = fighterComponent, ai = aiComponent)
                 else:
                     fighterComponent = Fighter(hp = 16, defense = 1, power = 4)
                     aiComponent = basicMonster()
                     monster = Entity(x, y, 'T', tcod.Color(10,70,30), 'Troll',
-                                     blocks = True, fighter = fighterComponent, ai = aiComponent)
+                                     blocks = True, rOrder = renderOrder.actor,
+                                     fighter = fighterComponent, ai = aiComponent)
                 entities.append(monster)
 
     #----------------------------------------------------------------------------------

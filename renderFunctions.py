@@ -1,7 +1,13 @@
 import tcod
 from config import Config
+from enum import Enum
 
-def renderAll(con, entities, map, fovMap, fovRecompute, screenWidth, screenHeight):
+class renderOrder(Enum):
+    corpse = 1
+    item = 2
+    actor = 3
+
+def renderAll(con, entities, player, map, fovMap, fovRecompute, screenWidth, screenHeight, colors):
     if fovRecompute:
         for y in range(map.height):
             for x in range(map.width):
@@ -20,8 +26,14 @@ def renderAll(con, entities, map, fovMap, fovRecompute, screenWidth, screenHeigh
                     else:
                         tcod.console_set_char_background(con, x, y, Config.COLORS.get('darkGround'), tcod.BKGND_SET)
 
-    for entity in entities:
+    entitiesInRenderOrder = sorted(entities, key = lambda x: x.rOrder.value)
+
+    for entity in entitiesInRenderOrder:
         drawEntity(con, entity, fovMap)
+
+    tcod.console_set_default_foreground(con, tcod.white)
+    tcod.console_print_ex(con, 1, screenHeight - 2, tcod.BKGND_NONE, tcod.LEFT,
+                          'HP: {0:02}/{1:02}'.format(player.fighter.hp, player.fighter.maxHP))
 
     tcod.console_blit(con, 0, 0, screenWidth, screenHeight, 0, 0, 0)
 
