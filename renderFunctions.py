@@ -1,11 +1,17 @@
 import tcod
 from config import Config
 from enum import Enum
+from gameStates import gameStates
+from menus import inventoryMenu
+
+#######################################################################################
 
 class renderOrder(Enum):
     corpse = 1
     item = 2
     actor = 3
+
+#######################################################################################
 
 def getNamesUnderMouse(mouse, entities, fovMap):
     x,y = (mouse.cx, mouse.cy)
@@ -13,6 +19,8 @@ def getNamesUnderMouse(mouse, entities, fovMap):
              if entity.x == x and entity.y == y and tcod.map_is_in_fov(fovMap, entity.x, entity.y)]
     names = ', '.join(names)
     return names.capitalize()
+
+#----------------------------------------------------------------------------------
 
 def renderBar(panel, x, y, totalWidth, name, value, maximum, barColor, backColor):
     barWidth = int(float(value) / maximum * totalWidth)
@@ -28,8 +36,10 @@ def renderBar(panel, x, y, totalWidth, name, value, maximum, barColor, backColor
     tcod.console_print_ex(panel, int(x + totalWidth / 2), y, tcod.BKGND_MULTIPLY, tcod.CENTER,
                           '{}: {}/{}'.format(name, value, maximum))
 
+#----------------------------------------------------------------------------------
+
 def renderAll(con, panel, entities, player, gameMap, fovMap, fovRecompute, messageLog,
-              screenWidth, screenHeight, barWidth, panelHeight, panelY, mouse, colors):
+              screenWidth, screenHeight, barWidth, panelHeight, panelY, mouse, colors, gameState):
     if fovRecompute:
         for y in range(gameMap.height):
             for x in range(gameMap.width):
@@ -77,13 +87,23 @@ def renderAll(con, panel, entities, player, gameMap, fovMap, fovRecompute, messa
 
     tcod.console_blit(panel, 0, 0, screenWidth, panelHeight, 0, 0, panelY)
 
+    if gameState == gameStates.SHOW_INVENTORY:
+        inventoryMenu(con, 'Press the key next to an item to use it, or Esc to cancel\n',
+                      player.inventory, 50, screenWidth, screenHeight)
+
+#----------------------------------------------------------------------------------
+
 def drawEntity(con, entity, fovMap):
     if tcod.map_is_in_fov(fovMap, entity.x, entity.y):
         tcod.console_set_default_foreground(con, entity.color)
         tcod.console_put_char(con, entity.x, entity.y, entity.char, tcod.BKGND_NONE)
 
+#----------------------------------------------------------------------------------
+
 def clearEntity(con, entity):
     tcod.console_put_char(con, entity.x, entity.y, ' ', tcod.BKGND_NONE)
+
+#----------------------------------------------------------------------------------
 
 def clearAll(con, entities):
     for entity in entities:

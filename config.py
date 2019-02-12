@@ -8,7 +8,7 @@ class Config(object):
     SCREEN_HEIGHT = 50
 
     MAP_WIDTH = 80
-    MAP_HEIGHT = 45
+    MAP_HEIGHT = 40
 
     COLORS = {
               'darkWall' : tcod.Color(0,0,100),
@@ -26,6 +26,7 @@ class Config(object):
     FOV_RADIUS = 15
 
     MAX_MONSTERS_PER_ROOM = 2
+    MAX_ITEMS_PER_ROOM = 2
 
     BAR_WIDTH = 20
     PANEL_HEIGHT = 7

@@ -20,11 +20,14 @@ class Fighter:
         damage = self.power - target.fighter.defense
 
         if damage > 0:
-            results.append({'message': Message('{} attacks {} for {} hit points'.format(
-                self.owner.name.capitalize(), target.name, str(damage)), tcod.white)})
+            results.append({
+                            'message': Message('{} attacks {} for {} hit points'.format(
+                            self.owner.name.capitalize(), target.name, str(damage)), tcod.white)
+                           })
             results.extend(target.fighter.takeDamage(damage))
         else:
-            results.append({'message': Message('{0} attacks {1} but does no damage'.format(
-                self.owner.name.capitalize(), target.name.capitalize()), tcod.white)})
-
+            results.append({
+                            'message': Message('{0} attacks {1} but does no damage'.format(
+                            self.owner.name.capitalize(), target.name.capitalize()), tcod.white)
+                           })
         return results

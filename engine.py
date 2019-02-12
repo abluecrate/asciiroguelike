@@ -13,6 +13,7 @@ from fovFunctions import initializeFOV, recomputeFOV
 from mapObjects.gameMap import gameMap
 
 from components.fighter import Fighter
+from components.inventory import Inventory
 from deathFunctions import killMonster, killPlayer
 from entity import Entity, getBlockingEntities
 
@@ -22,7 +23,9 @@ def main():
 
     #----------------------------------------------------------------------------------
     fighterComponent = Fighter(hp = 30, defense = 2, power = 5)
-    player = Entity(0, 0, '@', tcod.white, 'Player', blocks = True, rOrder = renderOrder.actor, fighter = fighterComponent)
+    inventoryComponent = Inventory(26)
+    player = Entity(0, 0, '@', tcod.white, 'Player', blocks = True, rOrder = renderOrder.actor, 
+                    fighter = fighterComponent, inventory = inventoryComponent)
     entities = [player]
     #----------------------------------------------------------------------------------
 
@@ -34,7 +37,7 @@ def main():
 
     map = gameMap(Config.MAP_WIDTH, Config.MAP_HEIGHT)
     map.makeMap(Config.MAX_ROOMS, Config.ROOM_MIN_SIZE, Config.ROOM_MAX_SIZE, Config.MAP_WIDTH, Config.MAP_HEIGHT, 
-                player, entities, Config.MAX_MONSTERS_PER_ROOM)
+                player, entities, Config.MAX_MONSTERS_PER_ROOM, Config.MAX_ITEMS_PER_ROOM)
     fovRecompute = True
     fovMap = initializeFOV(map)
 
@@ -44,6 +47,7 @@ def main():
     mouse = tcod.Mouse()
 
     gameState = gameStates.PLAYERS_TURN
+    previousGameState = gameState
 
     #----------------------------------------------------------------------------------
 
@@ -57,7 +61,7 @@ def main():
         renderAll(con, panel, entities, player, map, fovMap, fovRecompute, 
                   messageLog, Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT, 
                   Config.BAR_WIDTH, Config.PANEL_HEIGHT, Config.PANEL_Y, 
-                  mouse, Config.COLORS)
+                  mouse, Config.COLORS, gameState)
 
         fovRecompute = False
 
@@ -67,9 +71,13 @@ def main():
 
         #----------------------------------------------------------------------------------
 
-        action = handleKeys(key)
+        action = handleKeys(key, gameState)
 
         move = action.get('move')
+        pickup = action.get('pickup')
+        showInventory = action.get('showInventory')
+        inventoryIndex = action.get('inventoryIndex')
+
         EXIT = action.get('EXIT')
         FULLSCREEN = action.get('FULLSCREEN')
 
@@ -89,11 +97,33 @@ def main():
                     player.move(dx,dy)
                     fovRecompute = True
                 gameState = gameStates.ENEMY_TURN
+        
+        elif pickup and gameState == gameStates.PLAYERS_TURN:
+            for entity in entities:
+                if entity.item and entity.x == player.x and entity.y == player.y:
+                    pickupResults = player.inventory.addItem(entity)
+                    playerTurnResults.extend(pickupResults)
+                    break
+            else:
+                messageLog.addMessage(Message('There is nothing to pickup', tcod.yellow))
+
+        if showInventory:
+            previousGameState = gameState
+            gameState = gameStates.SHOW_INVENTORY
+            
+        if inventoryIndex is not None and previousGameState != gameStates.PLAYER_DEAD and \
+           inventoryIndex < len(player.inventory.items):
+           item = player.inventory.items[inventoryIndex]
+           print(item)
+
 
         #----------------------------------------------------------------------------------
 
         if EXIT:
-            return True
+            if gameState == gameStates.SHOW_INVENTORY:
+                gameState = previousGameState
+            else:
+                return True
 
         if FULLSCREEN:
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
@@ -103,6 +133,7 @@ def main():
         for playerTurnResult in playerTurnResults:
             message = playerTurnResult.get('message')
             deadEntity = playerTurnResult.get('dead')
+            itemAdded = playerTurnResult.get('itemAdded')
 
             if message:
                 messageLog.addMessage(message)
@@ -112,7 +143,9 @@ def main():
                 else:
                     message = killMonster(deadEntity)
                 messageLog.addMessage(message)
-
+            if itemAdded:
+                entities.remove(itemAdded)
+                gameState = gameStates.ENEMY_TURN
         #----------------------------------------------------------------------------------
 
         if gameState == gameStates.ENEMY_TURN:

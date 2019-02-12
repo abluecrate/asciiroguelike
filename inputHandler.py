@@ -1,25 +1,65 @@
 import tcod
+from gameStates import gameStates
 
-def handleKeys(key):
-    key_char = chr(key.c)
+def handleKeys(key, gameState):
+    if gameState == gameStates.PLAYERS_TURN:
+        return handlePlayerTurnKeys(key)
+    elif gameState == gameStates.PLAYER_DEAD:
+        return handlePlayerDeadKeys(key)
+    elif gameState == gameStates.SHOW_INVENTORY:
+        return handleInventoryKeys(key)
+    return {}
 
-    if key.vk == tcod.KEY_UP or key_char == 'w':
+def handlePlayerTurnKeys(key):
+    keyChar = chr(key.c)
+
+    if key.vk == tcod.KEY_UP or keyChar == 'w':
         return {'move' : (0,-1)}
-    elif key.vk == tcod.KEY_DOWN or key_char == 's':
+    elif key.vk == tcod.KEY_DOWN or keyChar == 's':
         return {'move' : (0,1)}
-    elif key.vk == tcod.KEY_LEFT or key_char == 'a':
+    elif key.vk == tcod.KEY_LEFT or keyChar == 'a':
         return {'move' : (-1,0)}
-    elif key.vk == tcod.KEY_RIGHT or key_char == 'd':
+    elif key.vk == tcod.KEY_RIGHT or keyChar == 'd':
         return {'move' : (1,0)}
-    elif key_char == 'q':
+    elif keyChar == 'q':
         return {'move': (-1, -1)}
-    elif key_char == 'e':
+    elif keyChar == 'e':
         return {'move': (1, -1)}
-    elif key_char == 'z':
+    elif keyChar == 'z':
         return {'move': (-1, 1)}
-    elif key_char == 'x':
+    elif keyChar == 'x':
         return {'move': (1, 1)}
 
+    if keyChar == 'g':
+        return{'pickup': True}
+    elif keyChar == 'i':
+        return {'showInventory': True}
+
+    if key.vk == tcod.KEY_ENTER and key.lalt:
+        return {'FULLSCREEN' : True}
+    elif key.vk == tcod.KEY_ESCAPE:
+        return {'EXIT' : True}
+    
+    return {}
+
+def handlePlayerDeadKeys(key):
+    keyChar = chr(key.c)
+
+    if keyChar == 'i':
+        return {'showInventory': True}
+    if key.vk == tcod.KEY_ENTER and key.lalt:
+        return {'FULLSCREEN': True}
+    elif key.vk == tcod.KEY_ESCAPE:
+        return {'EXIT': True}
+
+    return {}
+
+def handleInventoryKeys(key):
+    index = key.c - ord('a')
+
+    if index >= 0:
+        return {'inventoryIndex': index}
+    
     if key.vk == tcod.KEY_ENTER and key.lalt:
         return {'FULLSCREEN' : True}
     elif key.vk == tcod.KEY_ESCAPE:

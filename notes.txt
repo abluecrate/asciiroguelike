@@ -1,4 +1,4 @@
-http://rogueliketutorials.com/libtcod/6
+http://rogueliketutorials.com/libtcod/8
 
 http://programarcadegames.com/index.php?lang=en
 

@@ -6,6 +6,7 @@ from mapObjects.rectangle import Rect
 from entity import Entity
 from components.fighter import Fighter
 from components.ai import basicMonster
+from components.item import Item
 
 #######################################################################################
 
@@ -55,8 +56,10 @@ class gameMap:
 
     #----------------------------------------------------------------------------------
 
-    def placeEntities(self, room, entities, maxMonstersPerRoom):
+    def placeEntities(self, room, entities, maxMonstersPerRoom, maxItemsPerRoom):
         nMonsters = randint(0, maxMonstersPerRoom)
+        print(nMonsters)
+        nItems = randint(0, maxItemsPerRoom)
         
         for _ in range(nMonsters):
             x = randint(room.x1 + 1, room.x2 - 1)
@@ -77,10 +80,21 @@ class gameMap:
                                      fighter = fighterComponent, ai = aiComponent)
                 entities.append(monster)
 
+        for _ in range(nItems):
+            x = randint(room.x1 + 1, room.x2 - 1)
+            y = randint(room.y1 + 1, room.y2 - 1)
+
+            if not any([entity for entity in entities if entity.x == x and entity.y == y]):
+                itemComponent = Item()
+                item = Entity(x, y, '!', tcod.violet, ' Healing Potion', rOrder = renderOrder.item,
+                              item = itemComponent)
+
+                entities.append(item)
+
     #----------------------------------------------------------------------------------
 
     def makeMap(self, maxRooms, roomMinSize, roomMaxSize, mapWidth, mapHeight, player, 
-                entities, maxMonstersPerRoom):
+                entities, maxMonstersPerRoom, maxItemsPerRoom):
 
         rooms = []
         nRooms = 0
@@ -115,7 +129,7 @@ class gameMap:
                         self.createVTunnel(prevY,newY,prevX)
                         self.createHTunnel(prevX,newX,newY)
 
-            self.placeEntities(newRoom, entities, maxMonstersPerRoom)
+            self.placeEntities(newRoom, entities, maxMonstersPerRoom, maxItemsPerRoom)
 
             rooms.append(newRoom)
             nRooms += 1
