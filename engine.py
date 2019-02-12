@@ -7,6 +7,7 @@ from gameStates import gameStates
 
 from inputHandler import handleKeys
 from renderFunctions import renderAll, clearAll, renderOrder
+from gameMessages import Message, MessageLog
 
 from fovFunctions import initializeFOV, recomputeFOV
 from mapObjects.gameMap import gameMap
@@ -29,12 +30,15 @@ def main():
     tcod.console_init_root(Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT, Config.TITLE, False)
     
     con = tcod.console_new(Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT)
+    panel = tcod.console_new(Config.SCREEN_WIDTH, Config.PANEL_HEIGHT)
 
     map = gameMap(Config.MAP_WIDTH, Config.MAP_HEIGHT)
     map.makeMap(Config.MAX_ROOMS, Config.ROOM_MIN_SIZE, Config.ROOM_MAX_SIZE, Config.MAP_WIDTH, Config.MAP_HEIGHT, 
                 player, entities, Config.MAX_MONSTERS_PER_ROOM)
     fovRecompute = True
     fovMap = initializeFOV(map)
+
+    messageLog = MessageLog(Config.MESSAGE_X, Config.MESSAGE_WIDTH, Config.MESSAGE_HEIGHT)
 
     key = tcod.Key()
     mouse = tcod.Mouse()
@@ -45,12 +49,15 @@ def main():
 
     while not tcod.console_is_window_closed():
 
-        tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS, key, mouse)
+        tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS | tcod.EVENT_MOUSE, key, mouse)
 
         if fovRecompute:
             recomputeFOV(fovMap, player.x, player.y, Config.FOV_RADIUS, Config.FOV_LIGHT_WALLS, Config.FOV_ALGORITHM)
 
-        renderAll(con, entities, player, map, fovMap, fovRecompute, Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT, Config.COLORS)
+        renderAll(con, panel, entities, player, map, fovMap, fovRecompute, 
+                  messageLog, Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT, 
+                  Config.BAR_WIDTH, Config.PANEL_HEIGHT, Config.PANEL_Y, 
+                  mouse, Config.COLORS)
 
         fovRecompute = False
 
@@ -98,13 +105,13 @@ def main():
             deadEntity = playerTurnResult.get('dead')
 
             if message:
-                print(message)
+                messageLog.addMessage(message)
             if deadEntity:
                 if deadEntity == player:
                     message, gameState = killPlayer(deadEntity)
                 else:
                     message = killMonster(deadEntity)
-                print(message)
+                messageLog.addMessage(message)
 
         #----------------------------------------------------------------------------------
 
@@ -118,13 +125,13 @@ def main():
                         deadEntity = enemyTurnResult.get('dead')
 
                         if message:
-                            print(message)
+                            messageLog.addMessage(message)
                         if deadEntity:
                             if deadEntity == player:
                                 message, gameState = killPlayer(deadEntity)
                             else:
                                 message = killMonster(deadEntity)
-                            print(message)
+                            messageLog.addMessage(message)
 
                             if gameState == gameStates.PLAYER_DEAD:
                                 break
