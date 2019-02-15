@@ -4,6 +4,7 @@ from renderFunctions import renderOrder
 from mapObjects.tile import Tile
 from mapObjects.rectangle import Rect
 from entity import Entity
+from itemFunctions import heal
 from components.fighter import Fighter
 from components.ai import basicMonster
 from components.item import Item
@@ -58,10 +59,10 @@ class gameMap:
 
     def placeEntities(self, room, entities, maxMonstersPerRoom, maxItemsPerRoom):
         nMonsters = randint(0, maxMonstersPerRoom)
-        print(nMonsters)
         nItems = randint(0, maxItemsPerRoom)
         
-        for _ in range(nMonsters):
+        for i in range(nMonsters):
+
             x = randint(room.x1 + 1, room.x2 - 1)
             y = randint(room.y1 + 1, room.y2 - 1)
 
@@ -85,7 +86,7 @@ class gameMap:
             y = randint(room.y1 + 1, room.y2 - 1)
 
             if not any([entity for entity in entities if entity.x == x and entity.y == y]):
-                itemComponent = Item()
+                itemComponent = Item(useFunction = heal, amount = 4)
                 item = Entity(x, y, '!', tcod.violet, ' Healing Potion', rOrder = renderOrder.item,
                               item = itemComponent)
 
