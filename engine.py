@@ -1,16 +1,24 @@
 # Python Libraries
 import libtcodpy as tcod
 # Game Functions
+from gameStates import GameStates
 from renderFunctions import renderAll, clearAll
+from fovFunctions import initializeFOV, recomputeFOV
 from inputHandler import handleKeys
 # Game Objects
-from entity import Entity
+from entity import Entity, getBlockingEntities
+from deathFunctions import killMonster, killPlayer
 from mapObjects.gameMap import GameMap
+from components.fighter import Fighter
 
 #-----------------------------------------------------------------------------------------------
 
 # MAIN LOOP
 def main():
+
+    #-----------------------------------------------------------------------------------------------
+    ################################################################################################
+    #-----------------------------------------------------------------------------------------------
 
     # CONFIG
     SCREENWIDTH = 80
@@ -18,17 +26,32 @@ def main():
     MAPWIDTH = 80
     MAPHEIGHT = 45
 
+    ROOMMAX = 10
+    ROOMMIN = 6
+    NUMROOMSMAX = 30
+
+    FOVALGORITHM = 0
+    FOVLIGHTWALLS = True
+    FOVRADIUS = 15
+
+    MAXMONSTERSPERROOM = 3
+
     COLORS = {
                 'darkWall': tcod.Color(0,0,100),
-                'darkGround': tcod.Color(50,50,150)
+                'darkGround': tcod.Color(50,50,150),
+                'lightWall': tcod.Color(130,110,50),
+                'lightGround': tcod.Color(200,180,50)
     }
 
     #-----------------------------------------------------------------------------------------------
+    ################################################################################################
+    #-----------------------------------------------------------------------------------------------
 
-    player = Entity(int(SCREENWIDTH/2), int(SCREENHEIGHT/2), '@', tcod.white)   # Player Entity Object
-    
-    # Entity List
-    ENTITIES = [player]
+    # INITIALIZATION
+
+    fighterComponent = Fighter(hp = 30, defense = 2, power = 5)
+    player = Entity(0, 0, '@', tcod.white, 'Player', blocks = True, fighter = fighterComponent)   # Player Entity Object
+    entities = [player] # Entity List
 
     #-----------------------------------------------------------------------------------------------
 
@@ -42,13 +65,23 @@ def main():
     #-----------------------------------------------------------------------------------------------
     
     MAP = GameMap(MAPWIDTH, MAPHEIGHT) # CREATE MAP
+    MAP.makeMap(NUMROOMSMAX, ROOMMIN, ROOMMAX, MAPWIDTH, MAPHEIGHT, player, entities, MAXMONSTERSPERROOM)
+
+    fovRecompute = True         # FOV Recomputing Boolean
+    fovMap = initializeFOV(MAP) # Initialize FOV Map
 
     #-----------------------------------------------------------------------------------------------
 
     key = tcod.Key()        # Store Keyboard Input
     mouse = tcod.Mouse()    # Store Mouse Input
 
+    gameState = GameStates.PLAYERTURN   # Start On Player's Turn
+
     #-----------------------------------------------------------------------------------------------
+    ################################################################################################
+    #-----------------------------------------------------------------------------------------------
+
+    # GAME LOOP
 
     while not tcod.console_is_window_closed():
 
@@ -56,12 +89,17 @@ def main():
 
         #-----------------------------------------------------------------------------------------------
 
-        renderAll(baseConsole, ENTITIES, MAP, SCREENWIDTH, SCREENHEIGHT, COLORS) # Render All Entities
+        if fovRecompute:
+            # Recompute FOV Based on Player Position
+            recomputeFOV(fovMap, player.x, player.y, FOVRADIUS, FOVLIGHTWALLS, FOVALGORITHM)
+
+        renderAll(baseConsole, entities, MAP, fovMap, fovRecompute, SCREENWIDTH, SCREENHEIGHT, COLORS) # Render All Entities
+        fovRecompute = False    # Turn Off FOV Recompute Until Player Move
 
         #-----------------------------------------------------------------------------------------------
 
         tcod.console_flush()            # Update Console to Current State
-        clearAll(baseConsole, ENTITIES) # Clear Entities
+        clearAll(baseConsole, entities) # Clear Entities
 
         #-----------------------------------------------------------------------------------------------
 
@@ -72,17 +110,77 @@ def main():
         exit = action.get('exit')               # Exit Boolean
         fullscreen = action.get('fullscreen')   # Fullscreen Boolean
 
-        if move:
+        playerTurnResults = []  # Initialize Player's Turn Results
+
+        # Check for movement and players turn
+        if move and gameState == GameStates.PLAYERTURN:
             dx,dy = move # Movement Deltas
+            # Movement Destination
+            destinationX = player.x + dx
+            destinationY = player.y + dy
+
             # If map is not blocked:
-            if not MAP.isBlocked(player.x + dx, player.y + dy):
-                player.move(dx,dy)  # Move Player By Delta
+            if not MAP.isBlocked(destinationX, destinationY):
+                # Check for blocking entities
+                target = getBlockingEntities(entities, destinationX, destinationY)
+                
+                if target:
+                    # player.fighter.attack(target)
+                    attackResults = player.fighter.attack(target)   # Gather Attack Results
+                    playerTurnResults.extend(attackResults)         # Add to Player Turn Results
+                else:
+                    player.move(dx,dy)  # Move Player By Delta
+                    fovRecompute = True
+
+                gameState = GameStates.ENEMYTURN    # Set To Enemy's Turn
 
         if exit:        # Exit Window
             return True
         if fullscreen:  # Fullscreen
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
 
+        for playerTurnResult in playerTurnResults:
+            message = playerTurnResult.get('message')
+            deadEntity = playerTurnResult.get('dead')
+
+            if message:
+                print(message)
+            if deadEntity:
+                if deadEntity == player:
+                    message, gameState = killPlayer(deadEntity)
+                else:
+                    message = killMonster(deadEntity)
+                print(message)
+
+        if gameState == GameStates.ENEMYTURN:
+            for entity in entities:
+                if entity.ai:
+                    # entity.ai.takeTurn(player, fovMap, MAP, entities)
+                    enemyTurnResults = entity.ai.takeTurn(player, fovMap, MAP, entities)
+
+                    for enemyTurnResult in enemyTurnResults:
+                        message = enemyTurnResult.get('message')
+                        deadEntity = enemyTurnResult.get('dead')
+
+                        if message:
+                            print(message)
+                        if deadEntity:
+                            if deadEntity == player:
+                                message, gameState = killPlayer(deadEntity)
+                            else:
+                                message = killMonster(deadEntity)
+                            print(message)
+
+                        if gameState == GameStates.PLAYERDEAD:
+                            break
+                    
+                    if gameState == GameStates.PLAYERDEAD:
+                        break
+            else:
+                gameState = GameStates.PLAYERTURN   # Set To Player's Turn
+
+#-----------------------------------------------------------------------------------------------
+################################################################################################
 #-----------------------------------------------------------------------------------------------
 
 # EXECUTE MAIN LOOP
