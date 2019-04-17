@@ -1,4 +1,4 @@
-import libtcodpy as tcod
+import tcod
 
 class BasicMonster:
     def takeTurn(self, target, fovMap, gameMap, entities):

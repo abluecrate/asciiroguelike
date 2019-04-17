@@ -1,17 +1,20 @@
 import math
 import libtcodpy as tcod
+from renderFunctions import RenderOrder
 
 class Entity:
     # Generic Game Object
     #-----------------------------------------------------------------------------------------------
     def __init__(self, x, y, char, color, name, 
-                 blocks = False, fighter = None, ai = None):
+                 blocks = False, renderOrder = RenderOrder.CORPSE,
+                 fighter = None, ai = None):
         self.x = x          # X-Coordinate
         self.y = y          # Y-Coordinate
         self.char = char    # Character
         self.color = color  # Color
         self.name = name    # Entity Name
         self.blocks = blocks    # Block Movement
+        self.renderOrder = renderOrder
 
         self.fighter = fighter          # Adds Fighter Component
         if self.fighter:                # Checks for Fighter Component

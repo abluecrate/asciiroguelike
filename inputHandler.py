@@ -1,4 +1,4 @@
-import libtcodpy as tcod
+import tcod
 #-----------------------------------------------------------------------------------------------
 def handleKeys(key):
     # Movement Keys - Store Vector Movement

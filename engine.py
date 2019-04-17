@@ -1,8 +1,9 @@
 # Python Libraries
-import libtcodpy as tcod
+import tcod
 # Game Functions
 from gameStates import GameStates
-from renderFunctions import renderAll, clearAll
+from gameMessages import MessageLog
+from renderFunctions import renderAll, clearAll, RenderOrder
 from fovFunctions import initializeFOV, recomputeFOV
 from inputHandler import handleKeys
 # Game Objects
@@ -24,7 +25,15 @@ def main():
     SCREENWIDTH = 80
     SCREENHEIGHT = 50
     MAPWIDTH = 80
-    MAPHEIGHT = 45
+    MAPHEIGHT = 43
+
+    BARWIDTH = 20
+    PANELHEIGHT = 7
+    PANELY = SCREENHEIGHT - PANELHEIGHT
+
+    MESSAGEX = BARWIDTH + 2
+    MESSAGEWIDTH = SCREENWIDTH - BARWIDTH - 2
+    MESSAGEHEIGHT = PANELHEIGHT - 1
 
     ROOMMAX = 10
     ROOMMIN = 6
@@ -50,7 +59,8 @@ def main():
     # INITIALIZATION
 
     fighterComponent = Fighter(hp = 30, defense = 2, power = 5)
-    player = Entity(0, 0, '@', tcod.white, 'Player', blocks = True, fighter = fighterComponent)   # Player Entity Object
+    player = Entity(0, 0, '@', tcod.white, 'Player', blocks = True, 
+                    renderOrder = RenderOrder.ACTOR, fighter = fighterComponent)   # Player Entity Object
     entities = [player] # Entity List
 
     #-----------------------------------------------------------------------------------------------
@@ -61,6 +71,7 @@ def main():
     tcod.console_init_root(SCREENWIDTH, SCREENHEIGHT, title = 'ASCII Roguelike', fullscreen = False)
 
     baseConsole = tcod.console_new(SCREENWIDTH, SCREENHEIGHT)   # Base Console
+    panel = tcod.console_new(SCREENWIDTH, PANELHEIGHT)
 
     #-----------------------------------------------------------------------------------------------
     
@@ -71,6 +82,8 @@ def main():
     fovMap = initializeFOV(MAP) # Initialize FOV Map
 
     #-----------------------------------------------------------------------------------------------
+
+    messageLog = MessageLog(MESSAGEX, MESSAGEWIDTH, MESSAGEHEIGHT)
 
     key = tcod.Key()        # Store Keyboard Input
     mouse = tcod.Mouse()    # Store Mouse Input
@@ -93,7 +106,10 @@ def main():
             # Recompute FOV Based on Player Position
             recomputeFOV(fovMap, player.x, player.y, FOVRADIUS, FOVLIGHTWALLS, FOVALGORITHM)
 
-        renderAll(baseConsole, entities, MAP, fovMap, fovRecompute, SCREENWIDTH, SCREENHEIGHT, COLORS) # Render All Entities
+        # Render All Entities
+        renderAll(baseConsole, panel, entities, player, MAP, fovMap, fovRecompute, 
+                  SCREENWIDTH, SCREENHEIGHT, BARWIDTH, PANELHEIGHT, PANELY, COLORS)
+
         fovRecompute = False    # Turn Off FOV Recompute Until Player Move
 
         #-----------------------------------------------------------------------------------------------
@@ -144,13 +160,14 @@ def main():
             deadEntity = playerTurnResult.get('dead')
 
             if message:
-                print(message)
+                messageLog.addMessage(message)
+
             if deadEntity:
                 if deadEntity == player:
                     message, gameState = killPlayer(deadEntity)
                 else:
                     message = killMonster(deadEntity)
-                print(message)
+                messageLog.addMessage(message)
 
         if gameState == GameStates.ENEMYTURN:
             for entity in entities:
@@ -163,13 +180,14 @@ def main():
                         deadEntity = enemyTurnResult.get('dead')
 
                         if message:
-                            print(message)
+                            messageLog.addMessage(message)
+
                         if deadEntity:
                             if deadEntity == player:
                                 message, gameState = killPlayer(deadEntity)
                             else:
                                 message = killMonster(deadEntity)
-                            print(message)
+                            messageLog.addMessage(message)
 
                         if gameState == GameStates.PLAYERDEAD:
                             break
