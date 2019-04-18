@@ -33,7 +33,7 @@ def main():
 
     MESSAGEX = BARWIDTH + 2
     MESSAGEWIDTH = SCREENWIDTH - BARWIDTH - 2
-    MESSAGEHEIGHT = PANELHEIGHT - 1
+    MESSAGEHEIGHT = PANELHEIGHT - 2
 
     ROOMMAX = 10
     ROOMMIN = 6
@@ -107,7 +107,7 @@ def main():
             recomputeFOV(fovMap, player.x, player.y, FOVRADIUS, FOVLIGHTWALLS, FOVALGORITHM)
 
         # Render All Entities
-        renderAll(baseConsole, panel, entities, player, MAP, fovMap, fovRecompute, 
+        renderAll(baseConsole, panel, entities, player, MAP, fovMap, fovRecompute, messageLog,
                   SCREENWIDTH, SCREENHEIGHT, BARWIDTH, PANELHEIGHT, PANELY, COLORS)
 
         fovRecompute = False    # Turn Off FOV Recompute Until Player Move

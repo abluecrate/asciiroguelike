@@ -20,8 +20,8 @@ def renderPanel(panel, x, y, totalWidth, name, value, maximum, barColor, backCol
                           '{}: {}/{}'.format(name, value, maximum))
 #-----------------------------------------------------------------------------------------------
 # Draw Entities and Map
-def renderAll(console, panel, entities, player, map, fovMap, fovRecompute, screenWidth, screenHeight,
-              barWidth, panelHeight, panelY, colors):
+def renderAll(console, panel, entities, player, map, fovMap, fovRecompute, messageLog,
+              screenWidth, screenHeight, barWidth, panelHeight, panelY, colors):
     if fovRecompute:
         # Draw all map tiles
         for y in range(map.mapHeight):
@@ -51,6 +51,12 @@ def renderAll(console, panel, entities, player, map, fovMap, fovRecompute, scree
 
     tcod.console_set_default_background(panel, tcod.black)
     tcod.console_clear(panel)
+
+    y = 1
+    for message in messageLog.messages:
+        tcod.console_set_default_foreground(panel, message.color)
+        tcod.console_print_ex(panel, messageLog.x, y, tcod.BKGND_NONE, tcod.LEFT, message.text)
+        y += 1
 
     renderPanel(panel, 1, 1, barWidth, 'HP', player.fighter.hp, player.fighter.maxHP,
                 tcod.light_red, tcod.darker_red)
