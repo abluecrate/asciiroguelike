@@ -13,8 +13,7 @@ def getNamesUnderMouse(mouse, entities, fovMap):
     names = [entity.name for entity in entities
              if entity.x == x and entity.y == y and tcod.map_is_in_fov(fovMap, entity.x, entity.y)]
     names = ', '.join(names)
-    return names.capitalize()
-
+    return names
 #-----------------------------------------------------------------------------------------------
 # Draw Panel
 def renderPanel(panel, x, y, totalWidth, name, value, maximum, barColor, backColor):

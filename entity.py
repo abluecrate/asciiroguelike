@@ -7,7 +7,7 @@ class Entity:
     #-----------------------------------------------------------------------------------------------
     def __init__(self, x, y, char, color, name, 
                  blocks = False, renderOrder = RenderOrder.CORPSE,
-                 fighter = None, ai = None):
+                 fighter = None, ai = None, item=None, inventory=None):
         self.x = x          # X-Coordinate
         self.y = y          # Y-Coordinate
         self.char = char    # Character
@@ -16,6 +16,14 @@ class Entity:
         self.blocks = blocks    # Block Movement
         self.renderOrder = renderOrder
 
+        self.item = item
+        if self.item:
+            self.item.owner = self
+
+        self.inventory = inventory
+        if self.inventory:
+            self.inventory.owner = self
+
         self.fighter = fighter          # Adds Fighter Component
         if self.fighter:                # Checks for Fighter Component
             self.fighter.owner = self   # Sets Owner of Component
@@ -23,6 +31,7 @@ class Entity:
         self.ai = ai                # Adds AI Component
         if self.ai:                 # Checks for AI Component
             self.ai.owner = self    # Sets Owner of Component
+
     #-----------------------------------------------------------------------------------------------
     def move(self, dx, dy):
         self.x += dx    # X-Coordinate Delta

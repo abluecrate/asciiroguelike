@@ -2,7 +2,7 @@
 import tcod
 # Game Functions
 from gameStates import GameStates
-from gameMessages import MessageLog
+from gameMessages import Message, MessageLog
 from renderFunctions import renderAll, clearAll, RenderOrder
 from fovFunctions import initializeFOV, recomputeFOV
 from inputHandler import handleKeys
@@ -11,6 +11,7 @@ from entity import Entity, getBlockingEntities
 from deathFunctions import killMonster, killPlayer
 from mapObjects.gameMap import GameMap
 from components.fighter import Fighter
+from components.inventory import Inventory
 
 #-----------------------------------------------------------------------------------------------
 
@@ -44,6 +45,7 @@ def main():
     FOVRADIUS = 15
 
     MAXMONSTERSPERROOM = 3
+    MAXITEMSPERROOM = 2
 
     COLORS = {
                 'darkWall': tcod.Color(0,0,100),
@@ -58,9 +60,11 @@ def main():
 
     # INITIALIZATION
 
-    fighterComponent = Fighter(hp = 30, defense = 2, power = 5)
-    player = Entity(0, 0, '@', tcod.white, 'Player', blocks = True, 
-                    renderOrder = RenderOrder.ACTOR, fighter = fighterComponent)   # Player Entity Object
+    fighterComponent = Fighter(hp=30, defense=2, power=5)
+    inventoryComponent = Inventory(26)
+    player = Entity(0, 0, '@', tcod.white, 'Player', blocks=True, 
+                    renderOrder=RenderOrder.ACTOR, fighter=fighterComponent,
+                    inventory=inventoryComponent)   # Player Entity Object
     entities = [player] # Entity List
 
     #-----------------------------------------------------------------------------------------------
@@ -76,7 +80,8 @@ def main():
     #-----------------------------------------------------------------------------------------------
     
     MAP = GameMap(MAPWIDTH, MAPHEIGHT) # CREATE MAP
-    MAP.makeMap(NUMROOMSMAX, ROOMMIN, ROOMMAX, MAPWIDTH, MAPHEIGHT, player, entities, MAXMONSTERSPERROOM)
+    MAP.makeMap(NUMROOMSMAX, ROOMMIN, ROOMMAX, MAPWIDTH, MAPHEIGHT, player, entities, 
+                MAXMONSTERSPERROOM, MAXITEMSPERROOM)
 
     fovRecompute = True         # FOV Recomputing Boolean
     fovMap = initializeFOV(MAP) # Initialize FOV Map
@@ -123,6 +128,7 @@ def main():
 
         # Key Press Action
         move = action.get('move')               # Movement
+        pickup = action.get('pickup')           # Pickup Object
         exit = action.get('exit')               # Exit Boolean
         fullscreen = action.get('fullscreen')   # Fullscreen Boolean
 
@@ -150,6 +156,15 @@ def main():
 
                 gameState = GameStates.ENEMYTURN    # Set To Enemy's Turn
 
+        elif pickup and gameState == GameStates.PLAYERTURN:
+            for entity in entities:
+                if entity.item and entity.x == player.x and entity.y == player.y:
+                    pickupResults = player.inventory.addItem(entity)
+                    playerTurnResults.extend(pickupResults)
+                    break
+            else:
+                messageLog.addMessage(Message('There is nothing to pick up.', tcod.yellow))
+
         if exit:        # Exit Window
             return True
         if fullscreen:  # Fullscreen
@@ -158,6 +173,7 @@ def main():
         for playerTurnResult in playerTurnResults:
             message = playerTurnResult.get('message')
             deadEntity = playerTurnResult.get('dead')
+            itemAdded = playerTurnResult.get('itemAdded')
 
             if message:
                 messageLog.addMessage(message)
@@ -168,6 +184,10 @@ def main():
                 else:
                     message = killMonster(deadEntity)
                 messageLog.addMessage(message)
+
+            if itemAdded:
+                entities.remove(itemAdded)
+                gameState = GameStates.ENEMYTURN
 
         if gameState == GameStates.ENEMYTURN:
             for entity in entities:

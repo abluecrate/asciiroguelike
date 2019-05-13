@@ -1,6 +1,8 @@
 import tcod
 #-----------------------------------------------------------------------------------------------
 def handleKeys(key):
+    key_char = chr(key.c)
+
     # Movement Keys - Store Vector Movement
     if key.vk == tcod.KEY_UP:
         return {'move': (0,-1)}
@@ -10,6 +12,9 @@ def handleKeys(key):
         return {'move': (-1,0)}
     elif key.vk == tcod.KEY_RIGHT:
         return {'move': (1,0)}
+
+    if key_char == 'g':
+        return {'pickup': True}
 
     if key.vk == tcod.KEY_ENTER and key.lalt:
         # Alt + Enter: Toggle Fullscreen

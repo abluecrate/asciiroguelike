@@ -5,6 +5,7 @@ from mapObjects.tile import Tile
 from mapObjects.rectangle import Rectangle
 from components.fighter import Fighter
 from components.ai import BasicMonster
+from components.item import Item
 from renderFunctions import RenderOrder
 
 class GameMap:
@@ -81,13 +82,16 @@ class GameMap:
             y = randint(room.y1 + 1, room.y2 - 1)
 
             if not any([entity for entity in entities if entity.x == x and entity.y == y]):
-                item = Entity(x, y, '!', tcod.violet, 'Healing Potion', renderOrder=RenderOrder.ITEM)
+                itemComponent = Item()
+                item = Entity(x, y, '!', tcod.violet, 'Healing Potion', renderOrder=RenderOrder.ITEM,
+                              item=itemComponent)
                 entities.append(item)
 
     #-----------------------------------------------------------------------------------------------
     ################################################################################################
     #-----------------------------------------------------------------------------------------------
-    def makeMap(self, maxRooms, roomMin, roomMax, mapWidth, mapHeight, player, entities, maxMonstersPerRoom):
+    def makeMap(self, maxRooms, roomMin, roomMax, mapWidth, mapHeight, player, entities, 
+                maxMonstersPerRoom, maxItemsPerRoom):
         rooms = []
         numRooms = 0
 
@@ -123,7 +127,7 @@ class GameMap:
                         self.createVTunnel(prevY, newY, prevX)   # Move Vertical
                         self.createHTunnel(prevX, newX, newY)   # Move Horizontal
 
-                self.placeEntities(newRoom, entities, maxMonstersPerRoom)
+                self.placeEntities(newRoom, entities, maxMonstersPerRoom, maxItemsPerRoom)
 
                 rooms.append(newRoom)   # Append New Room To List
                 numRooms += 1           # Increase Number of Rooms
