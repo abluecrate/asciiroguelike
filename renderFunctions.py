@@ -7,6 +7,15 @@ class RenderOrder(Enum):
     ITEM = 2
     ACTOR = 3
 #-----------------------------------------------------------------------------------------------
+# Mouse Hover
+def getNamesUnderMouse(mouse, entities, fovMap):
+    (x, y) = (mouse.cx, mouse.cy)
+    names = [entity.name for entity in entities
+             if entity.x == x and entity.y == y and tcod.map_is_in_fov(fovMap, entity.x, entity.y)]
+    names = ', '.join(names)
+    return names.capitalize()
+
+#-----------------------------------------------------------------------------------------------
 # Draw Panel
 def renderPanel(panel, x, y, totalWidth, name, value, maximum, barColor, backColor):
     barWidth = int(float(value) / maximum * totalWidth)
@@ -21,7 +30,7 @@ def renderPanel(panel, x, y, totalWidth, name, value, maximum, barColor, backCol
 #-----------------------------------------------------------------------------------------------
 # Draw Entities and Map
 def renderAll(console, panel, entities, player, map, fovMap, fovRecompute, messageLog,
-              screenWidth, screenHeight, barWidth, panelHeight, panelY, colors):
+              screenWidth, screenHeight, barWidth, panelHeight, panelY, mouse, colors):
     if fovRecompute:
         # Draw all map tiles
         for y in range(map.mapHeight):
@@ -60,6 +69,10 @@ def renderAll(console, panel, entities, player, map, fovMap, fovRecompute, messa
 
     renderPanel(panel, 1, 1, barWidth, 'HP', player.fighter.hp, player.fighter.maxHP,
                 tcod.light_red, tcod.darker_red)
+
+    tcod.console_set_default_foreground(panel, tcod.light_grey)
+    tcod.console_print_ex(panel, 1, 0, tcod.BKGND_NONE, tcod.LEFT,
+                          getNamesUnderMouse(mouse, entities, fovMap))
 
     tcod.console_blit(panel, 0, 0, screenWidth, panelHeight, 0, 0, panelY)
 

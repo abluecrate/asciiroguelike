@@ -47,9 +47,10 @@ class GameMap:
             self.tiles[x][y].blocked = False
             self.tiles[x][y].blockSight = False
     #-----------------------------------------------------------------------------------------------
-    def placeEntities(self, room, entities, maxMonstersPerRoom):
+    def placeEntities(self, room, entities, maxMonstersPerRoom, maxItemsPerRoom):
         # Random Number of Monsters
         numMonsters = randint(0, maxMonstersPerRoom)
+        numItems = randint(0, maxItemsPerRoom)
 
         for _ in range(numMonsters):
             # Random Position
@@ -74,6 +75,14 @@ class GameMap:
                                      blocks = True, renderOrder = RenderOrder.ACTOR,
                                      fighter = fighterComponentTroll, ai = aiComponent)
                 entities.append(monster)
+
+        for _ in range(numItems):
+            x = randint(room.x1 + 1, room.x2 - 1)
+            y = randint(room.y1 + 1, room.y2 - 1)
+
+            if not any([entity for entity in entities if entity.x == x and entity.y == y]):
+                item = Entity(x, y, '!', tcod.violet, 'Healing Potion', renderOrder=RenderOrder.ITEM)
+                entities.append(item)
 
     #-----------------------------------------------------------------------------------------------
     ################################################################################################

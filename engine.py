@@ -98,7 +98,7 @@ def main():
 
     while not tcod.console_is_window_closed():
 
-        tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS, key, mouse)  # Capture User Input
+        tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS | tcod.EVENT_MOUSE, key, mouse)  # Capture User Input
 
         #-----------------------------------------------------------------------------------------------
 
@@ -108,7 +108,7 @@ def main():
 
         # Render All Entities
         renderAll(baseConsole, panel, entities, player, MAP, fovMap, fovRecompute, messageLog,
-                  SCREENWIDTH, SCREENHEIGHT, BARWIDTH, PANELHEIGHT, PANELY, COLORS)
+                  SCREENWIDTH, SCREENHEIGHT, BARWIDTH, PANELHEIGHT, PANELY, mouse, COLORS)
 
         fovRecompute = False    # Turn Off FOV Recompute Until Player Move
 
