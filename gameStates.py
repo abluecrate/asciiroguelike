@@ -4,3 +4,4 @@ class GameStates(Enum):
     PLAYERTURN = 1
     ENEMYTURN = 2
     PLAYERDEAD = 3
+    INVENTORY = 4

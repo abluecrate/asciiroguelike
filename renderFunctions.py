@@ -1,5 +1,7 @@
 import tcod
 from enum import Enum
+from gameStates import GameStates
+from menus import inventoryMenu
 #-----------------------------------------------------------------------------------------------
 # Entity Render Order
 class RenderOrder(Enum):
@@ -29,7 +31,7 @@ def renderPanel(panel, x, y, totalWidth, name, value, maximum, barColor, backCol
 #-----------------------------------------------------------------------------------------------
 # Draw Entities and Map
 def renderAll(console, panel, entities, player, map, fovMap, fovRecompute, messageLog,
-              screenWidth, screenHeight, barWidth, panelHeight, panelY, mouse, colors):
+              screenWidth, screenHeight, barWidth, panelHeight, panelY, mouse, colors, gameState):
     if fovRecompute:
         # Draw all map tiles
         for y in range(map.mapHeight):
@@ -49,7 +51,7 @@ def renderAll(console, panel, entities, player, map, fovMap, fovRecompute, messa
                         tcod.console_set_char_background(console, x, y, colors.get('darkGround'), tcod.BKGND_SET)
 
     # Sort Entities in Render Order
-    entitiesRenderSorted = sorted(entities, key = lambda x: x.renderOrder.value)
+    entitiesRenderSorted = sorted(entities, key=lambda x: x.renderOrder.value)
     # Draw all entities in list
     for entity in entitiesRenderSorted:
         drawEntity(console, entity, fovMap)
@@ -74,6 +76,10 @@ def renderAll(console, panel, entities, player, map, fovMap, fovRecompute, messa
                           getNamesUnderMouse(mouse, entities, fovMap))
 
     tcod.console_blit(panel, 0, 0, screenWidth, panelHeight, 0, 0, panelY)
+
+    if gameState == GameStates.INVENTORY:
+        inventoryMenu(console, 'Press the key next to an item to use it, or Esc to cancel.\n',
+                      player.inventory, 50, screenWidth, screenHeight)
 
 #-----------------------------------------------------------------------------------------------
 # Draw Entity

@@ -94,6 +94,7 @@ def main():
     mouse = tcod.Mouse()    # Store Mouse Input
 
     gameState = GameStates.PLAYERTURN   # Start On Player's Turn
+    previousGameState = gameState
 
     #-----------------------------------------------------------------------------------------------
     ################################################################################################
@@ -113,7 +114,7 @@ def main():
 
         # Render All Entities
         renderAll(baseConsole, panel, entities, player, MAP, fovMap, fovRecompute, messageLog,
-                  SCREENWIDTH, SCREENHEIGHT, BARWIDTH, PANELHEIGHT, PANELY, mouse, COLORS)
+                  SCREENWIDTH, SCREENHEIGHT, BARWIDTH, PANELHEIGHT, PANELY, mouse, COLORS, gameState)
 
         fovRecompute = False    # Turn Off FOV Recompute Until Player Move
 
@@ -124,11 +125,13 @@ def main():
 
         #-----------------------------------------------------------------------------------------------
 
-        action = handleKeys(key) # Get Key Press
+        action = handleKeys(key, gameState) # Get Key Press
 
         # Key Press Action
         move = action.get('move')               # Movement
         pickup = action.get('pickup')           # Pickup Object
+        showInventory = action.get('showInventory')
+        inventoryIndex = action.get('inventoryIndex')
         exit = action.get('exit')               # Exit Boolean
         fullscreen = action.get('fullscreen')   # Fullscreen Boolean
 
@@ -165,8 +168,20 @@ def main():
             else:
                 messageLog.addMessage(Message('There is nothing to pick up.', tcod.yellow))
 
+        if showInventory:
+            previousGameState = gameState
+            gameState = GameStates.INVENTORY
+        
+        if inventoryIndex is not None and previousGameState != GameStates.PLAYERDEAD and inventoryIndex < len(player.inventory.items):
+            item = player.inventory.items[inventoryIndex]
+            playerTurnResults.extend(player.inventory.use(item))
+
         if exit:        # Exit Window
-            return True
+            if gameState == GameStates.INVENTORY:
+                gameState = previousGameState
+            else:
+                return True
+
         if fullscreen:  # Fullscreen
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
 
@@ -174,6 +189,7 @@ def main():
             message = playerTurnResult.get('message')
             deadEntity = playerTurnResult.get('dead')
             itemAdded = playerTurnResult.get('itemAdded')
+            itemConsumed = playerTurnResult.get('consumed')
 
             if message:
                 messageLog.addMessage(message)
@@ -187,6 +203,9 @@ def main():
 
             if itemAdded:
                 entities.remove(itemAdded)
+                gameState = GameStates.ENEMYTURN
+
+            if itemConsumed:
                 gameState = GameStates.ENEMYTURN
 
         if gameState == GameStates.ENEMYTURN:

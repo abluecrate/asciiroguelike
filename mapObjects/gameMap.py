@@ -7,6 +7,7 @@ from components.fighter import Fighter
 from components.ai import BasicMonster
 from components.item import Item
 from renderFunctions import RenderOrder
+from itemFunctions import heal
 
 class GameMap:
     # Game Map Class
@@ -82,7 +83,7 @@ class GameMap:
             y = randint(room.y1 + 1, room.y2 - 1)
 
             if not any([entity for entity in entities if entity.x == x and entity.y == y]):
-                itemComponent = Item()
+                itemComponent = Item(useFunction=heal, amount=4)
                 item = Entity(x, y, '!', tcod.violet, 'Healing Potion', renderOrder=RenderOrder.ITEM,
                               item=itemComponent)
                 entities.append(item)
