@@ -21,6 +21,11 @@ def main():
     MAPWIDTH = 80
     MAPHEIGHT = 45
 
+    # Map Configuration
+    MAXROOMSIZE = 10
+    MINROOMSIZE = 6
+    MAXROOMS = 30
+
     COLORS = {
               'darkWall': tcod.Color(0, 0, 100),
               'darkGround': tcod.Color(50, 50, 150)
@@ -47,6 +52,7 @@ def main():
     root = tcod.console_new(SCREENWIDTH, SCREENHEIGHT)
 
     gameMap = GameMap(MAPWIDTH, MAPHEIGHT)
+    gameMap.makeMap(MAXROOMS, MINROOMSIZE, MAXROOMSIZE, MAPWIDTH, MAPHEIGHT, player)
 
     key = tcod.Key()        # Keyboard Input
     mouse = tcod.Mouse()    # Mouse Input
