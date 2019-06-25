@@ -4,18 +4,17 @@ import tcod
 ##############################################################################
 
 
-def renderAll(console, entities, gameMap, screenWidth, screenHeight, colors):
-    # Draw Map Tiles
+def renderAll(console, entities, gameMap, screenWidth, screenHeight):
     for y in range(gameMap.height):
         for x in range(gameMap.width):
-            wall = gameMap.tiles[x][y].blockSight
+            wall = gameMap.tiles[x][y].blocked
             if wall:
                 tcod.console_set_char_background(console, x, y,
-                                                 colors.get('darkWall'),
+                                                 tcod.blue,
                                                  tcod.BKGND_SET)
             else:
                 tcod.console_set_char_background(console, x, y,
-                                                 colors.get('darkGround'),
+                                                 tcod.green,
                                                  tcod.BKGND_SET)
 
     # Draw Entities in List

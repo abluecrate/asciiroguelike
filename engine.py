@@ -15,21 +15,10 @@ def main():
 
     # Screen Size
     SCREENWIDTH = 80
-    SCREENHEIGHT = 50
+    SCREENHEIGHT = 80
 
-    # Map Size
     MAPWIDTH = 80
-    MAPHEIGHT = 45
-
-    # Map Configuration
-    MAXROOMSIZE = 10
-    MINROOMSIZE = 6
-    MAXROOMS = 30
-
-    COLORS = {
-              'darkWall': tcod.Color(0, 0, 100),
-              'darkGround': tcod.Color(50, 50, 150)
-             }
+    MAPHEIGHT = 80
 
     player = Entity(int(SCREENWIDTH / 2), int(SCREENHEIGHT / 2), '@',
                     tcod.white)
@@ -41,7 +30,7 @@ def main():
 
     # Set Font
     tcod.console_set_custom_font('arial10x10.png',
-                                 tcod.FONT_TYPE_GREYSCALE | 
+                                 tcod.FONT_TYPE_GREYSCALE |
                                  tcod.FONT_LAYOUT_TCOD)
 
     # Create Root Screen
@@ -51,8 +40,10 @@ def main():
     # Initializing Root Console
     root = tcod.console_new(SCREENWIDTH, SCREENHEIGHT)
 
+    # Generating Game Map
     gameMap = GameMap(MAPWIDTH, MAPHEIGHT)
-    gameMap.makeMap(MAXROOMS, MINROOMSIZE, MAXROOMSIZE, MAPWIDTH, MAPHEIGHT, player)
+    gameMap.makeMap()
+    # gameMap.makeMap(MAXROOMS, MINROOMSIZE, MAXROOMSIZE, MAPWIDTH, MAPHEIGHT, player)
 
     key = tcod.Key()        # Keyboard Input
     mouse = tcod.Mouse()    # Mouse Input
@@ -61,6 +52,8 @@ def main():
 
     # GAME LOOP
 
+    print('\nSTARTING GAME\n')
+
     while not tcod.console_is_window_closed():
         # Capture User Input
         tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS, key, mouse)
@@ -68,7 +61,7 @@ def main():
         # --------------------------------------------------------------------
         # RENDER ALL
 
-        renderAll(root, entities, gameMap, SCREENWIDTH, SCREENHEIGHT, COLORS)
+        renderAll(root, entities, gameMap, SCREENWIDTH, SCREENHEIGHT)
 
         # Present to Screen
         tcod.console_flush()
@@ -88,12 +81,8 @@ def main():
 
         if move:
             dx, dy = move
-            # Move If Not Blocked
             if not gameMap.isBlocked(player.x + dx, player.y + dy):
                 player.move(dx, dy)
-
-        # if key.vk == tcod.KEY_ESCAPE:
-        #     return True
 
         if exit:
             return True
