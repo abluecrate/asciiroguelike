@@ -14,13 +14,13 @@ def main():
     # CONFIG
 
     # Screen Size
-    SCREENWIDTH = 80
-    SCREENHEIGHT = 80
+    SCREENWIDTH = 79
+    SCREENHEIGHT = 49
 
-    MAPWIDTH = 80
-    MAPHEIGHT = 80
+    MAPWIDTH = 256
+    MAPHEIGHT = 256
 
-    player = Entity(int(SCREENWIDTH / 2), int(SCREENHEIGHT / 2), '@',
+    player = Entity(int(MAPWIDTH / 2), int(MAPHEIGHT / 2), '@',
                     tcod.white)
 
     # Entity List
@@ -43,7 +43,9 @@ def main():
     # Generating Game Map
     gameMap = GameMap(MAPWIDTH, MAPHEIGHT)
     gameMap.makeMap()
-    # gameMap.makeMap(MAXROOMS, MINROOMSIZE, MAXROOMSIZE, MAPWIDTH, MAPHEIGHT, player)
+    # print(gameMap.tiles[100][149])
+    # gameMap.makeMap(MAXROOMS, MINROOMSIZE, MAXROOMSIZE, 
+    #                 MAPWIDTH, MAPHEIGHT, player)
 
     key = tcod.Key()        # Keyboard Input
     mouse = tcod.Mouse()    # Mouse Input
@@ -61,7 +63,7 @@ def main():
         # --------------------------------------------------------------------
         # RENDER ALL
 
-        renderAll(root, entities, gameMap, SCREENWIDTH, SCREENHEIGHT)
+        renderAll(root, player, entities, gameMap, SCREENWIDTH, SCREENHEIGHT)
 
         # Present to Screen
         tcod.console_flush()

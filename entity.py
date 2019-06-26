@@ -8,3 +8,6 @@ class Entity:
     def move(self, dx, dy):
         self.x += dx
         self.y += dy
+
+    def __repr__(self):
+        return '< {} >'.format(self.char)
